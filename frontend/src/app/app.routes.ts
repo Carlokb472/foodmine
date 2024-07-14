@@ -7,7 +7,8 @@ import { LoginPageComponent } from './components/pages/login-page/login-page.com
 import { RegisterPageComponent } from './components/pages/register-page/register-page.component';
 import { CheckOutPageComponent } from './components/pages/check-out-page/check-out-page.component';
 import { AuthGuard} from './auth/guards/auth.guard';
-
+import { PaymentPageComponent } from './components/pages/payment-page/payment-page.component';
+import { OrderTrackPageComponent } from './components/pages/order-track-page/order-track-page.component';
 export const routes: Routes = [
     { path: '', component: HomeComponent },
     { path: 'search/:searchTerm', component: HomeComponent },
@@ -17,6 +18,8 @@ export const routes: Routes = [
     {path:'login',component:LoginPageComponent},
     {path:'register',component:RegisterPageComponent}, 
     {path:'checkout',component:CheckOutPageComponent,canActivate:[AuthGuard]}, 
+    {path:'payment',component:PaymentPageComponent,canActivate:[AuthGuard]},
+    {path:'track/:orderId', component: OrderTrackPageComponent, canActivate:[AuthGuard]},
   ];
   
 

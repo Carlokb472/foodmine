@@ -1,18 +1,24 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
 import { Order } from '../../../shared/models/Order';
 import { icon, LatLng, LatLngExpression, LatLngTuple, LeafletMouseEvent, map, Map, marker, Marker, tileLayer } from 'leaflet';
 import { LocationService } from '../../../services/location.service';
-
+import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './map.component.html',
   styleUrl: './map.component.css'
 })
-export class MapComponent implements OnInit {
+export class MapComponent implements OnChanges {
   @Input()
   order!:Order;
+
+
+  @Input()
+  readonly = false;
+
+ 
   private readonly MARKER_ZOOM_LEVEL = 16;
   private readonly MARKER_ICON = icon({
     iconUrl:
@@ -29,8 +35,28 @@ export class MapComponent implements OnInit {
 
   constructor(private locationService: LocationService) { }
 
-  ngOnInit(): void {
+  ngOnChanges(): void {
+    if(!this.order) return;
     this.initializeMap();
+
+    if(this.readonly && this.addressLatLng){
+      this.showLocationOnReadonlyMode();
+    }
+  }
+  showLocationOnReadonlyMode() {
+    const m = this.map;
+    this.setMarker(this.addressLatLng);
+    m.setView(this.addressLatLng, this.MARKER_ZOOM_LEVEL);
+
+    m.dragging.disable();
+    m.touchZoom.disable();
+    m.doubleClickZoom.disable();
+    m.scrollWheelZoom.disable();
+    m.boxZoom.disable();
+    m.keyboard.disable();
+    m.off('click');
+    m.tap?.disable();
+    this.currentMarker.dragging?.disable();
   }
 
   initializeMap(){
@@ -76,15 +102,21 @@ export class MapComponent implements OnInit {
   }
 
   set addressLatLng(latlng: LatLng){
+
+    if(!latlng.lat.toFixed) return;
     latlng.lat = parseFloat(latlng.lat.toFixed(8));
     latlng.lng = parseFloat(latlng.lng.toFixed(8));
 
     if (this.order) {  // <-- Added check
-      console.log("FUCK U");
+      
       this.order.addressLatLng = latlng;
       console.log(this.order.addressLatLng);
     } else {
       console.error('Order is not defined');  // <-- Added error logging
     }
+    
+  }
+  get addressLatLng(){
+    return this.order.addressLatLng!;
   }
 }

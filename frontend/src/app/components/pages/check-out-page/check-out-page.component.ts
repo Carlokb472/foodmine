@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component,OnInit } from '@angular/core';
 import { Order } from '../../../shared/models/Order';
 import { UserService } from '../../../services/user.service';
 import { CartService } from '../../../services/cart.service';
@@ -9,6 +9,9 @@ import { TitleComponent } from '../../partials/title/title.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { OrderItemsListComponent } from '../../partials/order-items-list/order-items-list.component';
 import { MapComponent } from '../../partials/map/map.component';
+import { Router } from '@angular/router';
+import { OrderService } from '../../../services/order.service';
+
 @Component({
   selector: 'check-out-page',
   standalone: true,
@@ -16,13 +19,15 @@ import { MapComponent } from '../../partials/map/map.component';
   templateUrl: './check-out-page.component.html',
   styleUrl: './check-out-page.component.css'
 })
-export class CheckOutPageComponent {
+export class CheckOutPageComponent implements OnInit {
   order:Order = new Order();
   checkoutForm!: FormGroup;
   constructor(cartService:CartService,
               private formBuilder: FormBuilder,
               private userService: UserService,
-              private toastrService: ToastrService) {
+              private toastrService: ToastrService,
+              private orderService: OrderService,
+              private router: Router)  {
                 const cart = cartService.getCart();
                 this.order.items = cart.items;
                 this.order.totalPrice = cart.totalPrice;
@@ -46,9 +51,20 @@ export class CheckOutPageComponent {
       return;
     }
 
+    if(!this.order.addressLatLng){
+      this.toastrService.warning('Please select your location on the map', 'Location');
+      return;
+    }
     this.order.name = this.fc.name.value;
     this.order.address = this.fc.address.value;
 
-    console.log(this.order);
+    this.orderService.create(this.order).subscribe({
+      next:() => {
+        this.router.navigateByUrl('/payment');
+      },
+      error:(errorResponse) => {
+        this.toastrService.error(errorResponse.error, 'Cart');
+      }
+    })
   }
 }
